@@ -5,6 +5,9 @@ app = Flask(__name__)
 
 # Load the trained model
 model = joblib.load("randomforest_model.pkl")
+@app.route('/')
+def hello():
+    return "Hello World!"
 
 # Define the predict route
 @app.route('/predict', methods=['POST'])
