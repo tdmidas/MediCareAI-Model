@@ -35,4 +35,6 @@ jobs:
         AWS_REGION: 'ap-southeast-1'
       run: |
         pip install awsebcli
-        eb deploy Medicare-ai-model-env --staged
+        eb init medicare-model --platform python-3.11 --region $AWS_REGION
+        eb use Medicare-ai-model-env
+        eb deploy
