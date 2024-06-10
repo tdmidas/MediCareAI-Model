@@ -63,5 +63,5 @@ jobs:
         unzip application.zip -d deploy
         ls -l deploy/
         cd deploy
-        eb init model-server-py --platform python-3.11 --region $AWS_REGION --key $AWS_ACCESS_KEY_ID
+        eb init model-server --platform python-3.11 --region $AWS_REGION --key $AWS_ACCESS_KEY_ID
         eb deploy Model-server-env --region $AWS_REGION 
