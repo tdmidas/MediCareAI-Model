@@ -17,10 +17,10 @@ jobs:
           python-version: 3.11
 
       - name: Install dependencies
-        run: pip install -r requirements.txt  # Replace with your requirements file
-
-      - name: Build the application (if necessary)
-        run: # Replace with your build command (e.g., copy static files)
+        run: 
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt  # Replace with your requirements file
 
       - name: Create deployment archive
         uses: aws-actions/aws-zip@v1
