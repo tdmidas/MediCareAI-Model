@@ -1,67 +1,41 @@
-name: CI/CD Pipeline
+name: Deploy to AWS Elastic Beanstalk
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    branches:
+      - master
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
-    - name: Zip Application
-      run: |
-        zip -r application.zip . -x "venv/*" "**/__pycache__/*" ".git/*" ".DS_Store"
-
-
-    - name: Upload Application Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: application
-        path: application.zip
-
   deploy:
-    needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 
     steps:
-    - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'  # Change to your required Python version
 
-    - name: Download Application Artifact
-      uses: actions/download-artifact@v2
-      with:
-        name: application
-        path: .
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Install AWS Elastic Beanstalk CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          pip3 install awsebcli --upgrade
+      - name: Archive the application
+        run: zip -r application.zip .
 
-    - name: Deploy to AWS Elastic Beanstalk
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: 'ap-southeast-1'
-      run: |
-        pip install awsebcli
-        unzip application.zip -d deploy
-        ls -l deploy/
-        cd deploy
-        eb init model-server --platform python-3.11 --region $AWS_REGION --key $AWS_ACCESS_KEY_ID
-        eb deploy Model-server-env --region $AWS_REGION 
+      - name: Deploy to Elastic Beanstalk
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: 'ap-southeast-1'  # Change to your AWS region if needed
+        run: |
+          eb init model-server --platform python-3.11 --region $AWS_REGION
+          eb use Model-server-env
+          eb deploy
