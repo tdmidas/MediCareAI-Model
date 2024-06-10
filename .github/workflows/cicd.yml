@@ -1,43 +1,49 @@
-name: Deploy to AWS Elastic Beanstalk
+name: production
 
 on:
-  push:
-    branches:
-      - master
+    push:
+        branches:
+            - master # Change this to 'master' if that's your default branch
+    pull_request:
+        branches:
+            - master # Change this to 'master' if that's your default branch
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    deploy:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'  # Change to your required Python version
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          
-      - name: Install AWS Elastic Beanstalk CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-pip
-          pip3 install awsebcli --upgrade
-
-      - name: Archive the application
-        run: zip -r application.zip .
-
-      - name: Deploy to Elastic Beanstalk
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: 'ap-southeast-1'  # Change to your AWS region if needed
-        run: |
-          eb init medicare-ai-model --platform python-3.11 --region $AWS_REGION
-          eb use Medicare-ai-model-env
-          eb deploy
+            AWS_REGION: "us-east-1" # Change to your AWS region if needed
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+        steps:
+            - name: Checkout 🛎
+              uses: actions/checkout@v3
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.11" # Change to your required Python version
+
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+
+            - name: Generate deployment package
+              run: zip -r deploy.zip * .[^.]* -x "**/__pycache__**" -x "**.git**"
+
+            - name: Beanstalk Deploy for app
+              uses: einaregilsson/beanstalk-deploy@v20 # Use the latest version available
+              with:
+                  aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  application_name: medicare-ai-model
+                  environment_name: Medicare-ai-model-env
+                  region: ${{ env.AWS_REGION }}
+                  version_label: "v-${{ github.sha }}"
+                  deployment_package: deploy.zip
+
+            - name: Deployed!
+              run: echo App deployed to Elastic Beanstalk
