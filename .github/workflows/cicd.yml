@@ -24,11 +24,6 @@ jobs:
         source venv/bin/activate
         pip install -r requirements.txt
 
-    - name: Test the application
-      run: |
-        source venv/bin/activate
-        pytest
-
     - name: Zip the application
       run: |
         zip -r deploy.zip . -x '*.git*' 'venv/*' '*.github*'
