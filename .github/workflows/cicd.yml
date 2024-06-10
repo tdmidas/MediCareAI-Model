@@ -67,5 +67,5 @@ jobs:
         unzip application.zip -d deploy
         ls -l deploy/
         cd deploy
-        eb init model-app --platform python-3.11 --region $AWS_REGION --key $AWS_ACCESS_KEY_ID
-        eb deploy model-app-env --region $AWS_REGION 
+        eb init medicare-ai-model --platform python-3.11 --region $AWS_REGION --key $AWS_ACCESS_KEY_ID
+        eb deploy Medicare-ai-model-env --region $AWS_REGION 
