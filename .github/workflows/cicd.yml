@@ -63,5 +63,5 @@ jobs:
         unzip application.zip -d deploy
         ls -l deploy/
         cd deploy
-        eb init medicareai-model --platform python-3.11 --region $AWS_REGION --key $AWS_ACCESS_KEY_ID
-        eb deploy Medicareai-model-env --region $AWS_REGION 
+        eb init model-server-py --platform python-3.11 --region $AWS_REGION --key $AWS_ACCESS_KEY_ID
+        eb deploy Model-server-env --region $AWS_REGION 
