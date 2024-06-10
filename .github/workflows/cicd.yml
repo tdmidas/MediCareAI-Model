@@ -1,40 +1,43 @@
-name: Deploy Flask App to AWS Elastic Beanstalk
+name: Deploy Flask App to Elastic Beanstalk
 
 on:
   push:
-    branches:
-      - master
+    branches: [ master ]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.11'
+      - name: Use Python 3.11
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.11
 
-    - name: Install dependencies
-      run: |
-        python -m venv venv
-        source venv/bin/activate
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt  # Replace with your requirements file
 
-    - name: Zip the application
-      run: |
-        zip -r deploy.zip . -x '*.git*' 'venv/*' '*.github*'
+      - name: Build the application (if necessary)
+        run: # Replace with your build command (e.g., copy static files)
 
-    - name: Deploy to Elastic Beanstalk
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: 'ap-southeast-1'
-      run: |
-        pip install awsebcli
-        eb init medicare-ai-model --platform python-3.11 --region $AWS_REGION
-        eb use Medicare-ai-model-env
-        eb deploy
+      - name: Create deployment archive
+        uses: aws-actions/aws-zip@v1
+        with:
+          subdirectories: '**/*'  # Include all files in the deployment package
+          artifact: deployment.zip
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          region: us-east-1  # Update with your desired AWS region
+
+      - name: Deploy to Elastic Beanstalk
+        uses: aws-actions/elasticbeanstalk-deploy@v1
+        with:
+          application-name: medicare-ai-model
+          environment-name: Medicare-ai-model-env
+          deployment-package: ${{ artifacts.deployment.zip }}
