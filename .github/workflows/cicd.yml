@@ -2,7 +2,7 @@ name: Build and Deploy to AWS EB
 
 on:
     push:
-        branches: [main]
+        branches: [master]
 
 jobs:
     build:
