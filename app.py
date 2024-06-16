@@ -24,9 +24,16 @@ def predict():
         # Assuming 'input' is the key for your input data
         prediction = model.predict([data['input']])
 
+        # Extract the single element from the prediction array
+        prediction_value = int(prediction[0])
+
         # Return the prediction as JSON response
-        return jsonify({'prediction': int(prediction)}), 200
+        return jsonify({'prediction': prediction_value}), 200
 
     except Exception as e:
         # Return error message if something goes wrong
         return jsonify({'error': str(e)}), 400
+
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=8000)
